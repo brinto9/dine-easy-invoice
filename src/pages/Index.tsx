@@ -3,8 +3,10 @@ import { useState } from 'react';
 import { MenuSection } from '@/components/MenuSection';
 import { OrderCart } from '@/components/OrderCart';
 import { PaymentModal } from '@/components/PaymentModal';
-import { Receipt } from 'lucide-react';
+import { Receipt, Settings, Table } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Link } from 'react-router-dom';
 
 export interface MenuItem {
   id: string;
@@ -18,6 +20,17 @@ export interface MenuItem {
 export interface OrderItem extends MenuItem {
   quantity: number;
   specialInstructions?: string;
+}
+
+export interface Invoice {
+  id: string;
+  tableNumber: string;
+  items: OrderItem[];
+  subtotal: number;
+  vat: number;
+  total: number;
+  paymentMethod: string;
+  timestamp: Date;
 }
 
 const menuItems: MenuItem[] = [
@@ -46,9 +59,11 @@ const Index = () => {
   const [orderItems, setOrderItems] = useState<OrderItem[]>([]);
   const [activeCategory, setActiveCategory] = useState('All');
   const [showPayment, setShowPayment] = useState(false);
-  const [orders, setOrders] = useState<OrderItem[][]>([]);
+  const [tableNumber, setTableNumber] = useState('1');
+  const [invoices, setInvoices] = useState<Invoice[]>([]);
 
   const categories = ['All', 'Appetizers', 'Main Courses', 'Desserts', 'Beverages'];
+  const tableNumbers = Array.from({ length: 20 }, (_, i) => (i + 1).toString());
 
   const filteredItems = activeCategory === 'All' 
     ? menuItems 
@@ -86,24 +101,35 @@ const Index = () => {
     return orderItems.reduce((total, item) => total + (item.price * item.quantity), 0);
   };
 
-  const calculateTax = () => {
-    return calculateSubtotal() * 0.08; // 8% tax
+  const calculateVAT = () => {
+    return calculateSubtotal() * 0.05; // 5% VAT
   };
 
   const calculateTotal = () => {
-    return calculateSubtotal() + calculateTax();
+    return calculateSubtotal() + calculateVAT();
   };
 
   const handlePayment = (paymentMethod: string) => {
-    // Save the order to orders history
-    setOrders([...orders, [...orderItems]]);
+    // Create invoice
+    const newInvoice: Invoice = {
+      id: `INV-${Date.now()}`,
+      tableNumber,
+      items: [...orderItems],
+      subtotal: calculateSubtotal(),
+      vat: calculateVAT(),
+      total: calculateTotal(),
+      paymentMethod,
+      timestamp: new Date()
+    };
+    
+    // Save to invoices
+    setInvoices([...invoices, newInvoice]);
     
     // Clear current order
     setOrderItems([]);
     setShowPayment(false);
     
-    // Show success message (you could add a toast here)
-    console.log(`Payment processed via ${paymentMethod}`);
+    console.log(`Payment processed via ${paymentMethod} for Table ${tableNumber}`);
   };
 
   const clearOrder = () => {
@@ -124,9 +150,17 @@ const Index = () => {
               <p className="text-sm text-gray-500">Point of Sale System</p>
             </div>
           </div>
-          <div className="text-right">
-            <p className="text-sm text-gray-500">Table #1</p>
-            <p className="text-lg font-semibold">{new Date().toLocaleDateString()}</p>
+          <div className="flex items-center space-x-4">
+            <Link to="/dashboard">
+              <Button variant="outline" size="sm">
+                <Settings className="h-4 w-4 mr-2" />
+                Dashboard
+              </Button>
+            </Link>
+            <div className="text-right">
+              <p className="text-sm text-gray-500">Table #{tableNumber}</p>
+              <p className="text-lg font-semibold">{new Date().toLocaleDateString()}</p>
+            </div>
           </div>
         </div>
       </header>
@@ -134,8 +168,27 @@ const Index = () => {
       <div className="flex h-[calc(100vh-80px)]">
         {/* Menu Section */}
         <div className="flex-1 p-6">
-          {/* Category Filter */}
-          <div className="mb-6">
+          {/* Table Selection and Category Filter */}
+          <div className="mb-6 space-y-4">
+            <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-2">
+                <Table className="h-5 w-5 text-gray-600" />
+                <span className="text-sm font-medium">Table:</span>
+              </div>
+              <Select value={tableNumber} onValueChange={setTableNumber}>
+                <SelectTrigger className="w-24">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {tableNumbers.map((num) => (
+                    <SelectItem key={num} value={num}>
+                      {num}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            
             <div className="flex space-x-2 overflow-x-auto pb-2">
               {categories.map((category) => (
                 <Button
@@ -168,9 +221,10 @@ const Index = () => {
             onRemoveItem={removeFromOrder}
             onClearOrder={clearOrder}
             subtotal={calculateSubtotal()}
-            tax={calculateTax()}
+            vat={calculateVAT()}
             total={calculateTotal()}
             onCheckout={() => setShowPayment(true)}
+            tableNumber={tableNumber}
           />
         </div>
       </div>

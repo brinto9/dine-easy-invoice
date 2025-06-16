@@ -11,9 +11,10 @@ interface OrderCartProps {
   onRemoveItem: (id: string) => void;
   onClearOrder: () => void;
   subtotal: number;
-  tax: number;
+  vat: number;
   total: number;
   onCheckout: () => void;
+  tableNumber: string;
 }
 
 export const OrderCart = ({
@@ -22,16 +23,17 @@ export const OrderCart = ({
   onRemoveItem,
   onClearOrder,
   subtotal,
-  tax,
+  vat,
   total,
-  onCheckout
+  onCheckout,
+  tableNumber
 }: OrderCartProps) => {
   return (
     <div className="h-full flex flex-col">
       <CardHeader className="pb-4">
         <CardTitle className="flex items-center space-x-2">
           <ShoppingCart className="h-5 w-5" />
-          <span>Current Order</span>
+          <span>Table {tableNumber} Order</span>
           {orderItems.length > 0 && (
             <span className="bg-orange-500 text-white text-xs px-2 py-1 rounded-full">
               {orderItems.reduce((sum, item) => sum + item.quantity, 0)}
@@ -106,8 +108,8 @@ export const OrderCart = ({
               <span>${subtotal.toFixed(2)}</span>
             </div>
             <div className="flex justify-between text-sm">
-              <span>Tax (8%):</span>
-              <span>${tax.toFixed(2)}</span>
+              <span>VAT (5%):</span>
+              <span>${vat.toFixed(2)}</span>
             </div>
             <Separator />
             <div className="flex justify-between font-bold text-lg">
