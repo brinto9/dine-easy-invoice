@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -21,8 +21,10 @@ export const PaymentModal = ({ total, onPayment, onClose }: PaymentModalProps) =
 
   const paymentMethods = [
     { id: 'cash', name: 'Cash', icon: Banknote, color: 'bg-green-500' },
-    { id: 'card', name: 'Credit/Debit Card', icon: CreditCard, color: 'bg-blue-500' },
-    { id: 'mobile', name: 'Mobile Payment', icon: Smartphone, color: 'bg-purple-500' },
+    { id: 'bkash', name: 'Bkash', icon: Smartphone, color: 'bg-pink-500' },
+    { id: 'nagad', name: 'Nagad', icon: Smartphone, color: 'bg-red-500' },
+    { id: 'visa', name: 'Visa Card', icon: CreditCard, color: 'bg-blue-500' },
+    { id: 'amex', name: 'Amex Card', icon: CreditCard, color: 'bg-purple-500' },
   ];
 
   const handlePayment = () => {
@@ -46,6 +48,7 @@ export const PaymentModal = ({ total, onPayment, onClose }: PaymentModalProps) =
       }
     }
 
+    console.log(`Processing payment: ${selectedMethod} for amount: $${total.toFixed(2)}`);
     onPayment(selectedMethod);
     toast({
       title: "Payment Successful!",
@@ -65,6 +68,9 @@ export const PaymentModal = ({ total, onPayment, onClose }: PaymentModalProps) =
             <Receipt className="h-5 w-5" />
             <span>Process Payment</span>
           </DialogTitle>
+          <DialogDescription>
+            Select a payment method and complete the transaction for ${total.toFixed(2)}
+          </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-6">
@@ -90,7 +96,10 @@ export const PaymentModal = ({ total, onPayment, onClose }: PaymentModalProps) =
                         ? 'ring-2 ring-orange-500 bg-orange-50'
                         : 'hover:bg-gray-50'
                     }`}
-                    onClick={() => setSelectedMethod(method.id)}
+                    onClick={() => {
+                      setSelectedMethod(method.id);
+                      console.log(`Selected payment method: ${method.name}`);
+                    }}
                   >
                     <CardContent className="p-4">
                       <div className="flex items-center space-x-3">
