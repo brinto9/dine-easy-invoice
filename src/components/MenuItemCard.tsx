@@ -30,7 +30,7 @@ export const MenuItemCard = ({ item, onAddToOrder }: MenuItemCardProps) => {
           
           <div className="flex items-center justify-between pt-2">
             <span className="text-lg font-bold text-green-600">
-              ${item.price.toFixed(2)}
+              ৳{item.price.toFixed(2)}
             </span>
             
             <Button

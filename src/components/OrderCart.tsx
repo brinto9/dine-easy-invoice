@@ -90,7 +90,7 @@ export const OrderCart = ({
                     </div>
                     
                     <span className="font-semibold text-green-600">
-                      ${(item.price * item.quantity).toFixed(2)}
+                      ৳{(item.price * item.quantity).toFixed(2)}
                     </span>
                   </div>
                 </CardContent>
@@ -105,16 +105,16 @@ export const OrderCart = ({
           <div className="space-y-2 mb-4">
             <div className="flex justify-between text-sm">
               <span>Subtotal:</span>
-              <span>${subtotal.toFixed(2)}</span>
+              <span>৳{subtotal.toFixed(2)}</span>
             </div>
             <div className="flex justify-between text-sm">
               <span>VAT (5%):</span>
-              <span>${vat.toFixed(2)}</span>
+              <span>৳{vat.toFixed(2)}</span>
             </div>
             <Separator />
             <div className="flex justify-between font-bold text-lg">
               <span>Total:</span>
-              <span className="text-green-600">${total.toFixed(2)}</span>
+              <span className="text-green-600">৳{total.toFixed(2)}</span>
             </div>
           </div>
           

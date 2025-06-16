@@ -1,9 +1,11 @@
-
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { MenuSection } from '@/components/MenuSection';
 import { OrderCart } from '@/components/OrderCart';
 import { PaymentModal } from '@/components/PaymentModal';
-import { Receipt, Settings, Table } from 'lucide-react';
+import { InvoiceModal } from '@/components/InvoiceModal';
+import { KOTModal } from '@/components/KOTModal';
+import { POSAuth } from '@/components/POSAuth';
+import { Receipt, Settings, Table, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Link } from 'react-router-dom';
@@ -60,10 +62,23 @@ let globalInvoices: Invoice[] = [];
 let globalMenuItems: MenuItem[] = [...menuItems];
 
 const Index = () => {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [orderItems, setOrderItems] = useState<OrderItem[]>([]);
   const [activeCategory, setActiveCategory] = useState('All');
   const [showPayment, setShowPayment] = useState(false);
+  const [showInvoices, setShowInvoices] = useState(false);
+  const [showKOT, setShowKOT] = useState(false);
+  const [showInvoice, setShowInvoice] = useState(false);
+  const [currentInvoice, setCurrentInvoice] = useState<Invoice | null>(null);
   const [tableNumber, setTableNumber] = useState('1');
+
+  useEffect(() => {
+    // Check if user was already authenticated in this session
+    const sessionAuth = sessionStorage.getItem('pos_authenticated');
+    if (sessionAuth === 'true') {
+      setIsAuthenticated(true);
+    }
+  }, []);
 
   const categories = ['All', 'Appetizers', 'Main Courses', 'Desserts', 'Beverages'];
   const tableNumbers = Array.from({ length: 20 }, (_, i) => (i + 1).toString());
@@ -127,10 +142,14 @@ const Index = () => {
     
     // Save to global invoices
     globalInvoices.push(newInvoice);
+    setCurrentInvoice(newInvoice);
     
     // Clear current order
     setOrderItems([]);
     setShowPayment(false);
+    
+    // Show KOT first, then invoice
+    setShowKOT(true);
     
     console.log(`Payment processed via ${paymentMethod} for Table ${tableNumber}`);
   };
@@ -138,6 +157,13 @@ const Index = () => {
   const clearOrder = () => {
     setOrderItems([]);
   };
+
+  if (!isAuthenticated) {
+    return <POSAuth onAuthenticated={() => {
+      setIsAuthenticated(true);
+      sessionStorage.setItem('pos_authenticated', 'true');
+    }} />;
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -148,9 +174,17 @@ const Index = () => {
             <div className="bg-orange-500 text-white p-2 rounded-lg">
               <Receipt className="h-5 w-5" />
             </div>
-            <h1 className="text-xl font-bold text-gray-900">Restaurant POS</h1>
+            <h1 className="text-xl font-bold text-gray-900">BrintoPOS</h1>
           </div>
           <div className="flex items-center space-x-3">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowInvoices(true)}
+            >
+              <FileText className="h-4 w-4 mr-1" />
+              Invoices
+            </Button>
             <Link to="/dashboard">
               <Button variant="outline" size="sm">
                 <Settings className="h-4 w-4 mr-1" />
@@ -235,6 +269,36 @@ const Index = () => {
           total={calculateTotal()}
           onPayment={handlePayment}
           onClose={() => setShowPayment(false)}
+        />
+      )}
+
+      {/* KOT Modal */}
+      {showKOT && currentInvoice && (
+        <KOTModal
+          invoice={currentInvoice}
+          onClose={() => {
+            setShowKOT(false);
+            setShowInvoice(true);
+          }}
+        />
+      )}
+
+      {/* Invoice Modal */}
+      {showInvoice && currentInvoice && (
+        <InvoiceModal
+          invoice={currentInvoice}
+          onClose={() => {
+            setShowInvoice(false);
+            setCurrentInvoice(null);
+          }}
+        />
+      )}
+
+      {/* Invoices List Modal */}
+      {showInvoices && (
+        <InvoiceModal
+          invoices={globalInvoices}
+          onClose={() => setShowInvoices(false)}
         />
       )}
     </div>
