@@ -35,39 +35,42 @@ export interface Invoice {
 
 const menuItems: MenuItem[] = [
   // Appetizers
-  { id: '1', name: 'Bruschetta', price: 8.99, category: 'Appetizers', description: 'Fresh tomatoes, basil, and mozzarella on toasted bread' },
-  { id: '2', name: 'Calamari Rings', price: 12.99, category: 'Appetizers', description: 'Crispy fried squid rings with marinara sauce' },
-  { id: '3', name: 'Caesar Salad', price: 9.99, category: 'Appetizers', description: 'Romaine lettuce, parmesan, croutons, caesar dressing' },
+  { id: '1', name: 'Bruschetta', price: 350, category: 'Appetizers', description: 'Fresh tomatoes, basil, and mozzarella on toasted bread' },
+  { id: '2', name: 'Calamari Rings', price: 450, category: 'Appetizers', description: 'Crispy fried squid rings with marinara sauce' },
+  { id: '3', name: 'Caesar Salad', price: 280, category: 'Appetizers', description: 'Romaine lettuce, parmesan, croutons, caesar dressing' },
   
   // Main Courses
-  { id: '4', name: 'Grilled Salmon', price: 24.99, category: 'Main Courses', description: 'Atlantic salmon with lemon herb butter' },
-  { id: '5', name: 'Ribeye Steak', price: 32.99, category: 'Main Courses', description: '12oz prime ribeye with garlic mashed potatoes' },
-  { id: '6', name: 'Chicken Parmesan', price: 19.99, category: 'Main Courses', description: 'Breaded chicken breast with marinara and mozzarella' },
-  { id: '7', name: 'Margherita Pizza', price: 16.99, category: 'Main Courses', description: 'Fresh mozzarella, tomatoes, and basil' },
+  { id: '4', name: 'Grilled Salmon', price: 850, category: 'Main Courses', description: 'Atlantic salmon with lemon herb butter' },
+  { id: '5', name: 'Ribeye Steak', price: 1200, category: 'Main Courses', description: '12oz prime ribeye with garlic mashed potatoes' },
+  { id: '6', name: 'Chicken Parmesan', price: 650, category: 'Main Courses', description: 'Breaded chicken breast with marinara and mozzarella' },
+  { id: '7', name: 'Margherita Pizza', price: 550, category: 'Main Courses', description: 'Fresh mozzarella, tomatoes, and basil' },
   
   // Desserts
-  { id: '8', name: 'Tiramisu', price: 7.99, category: 'Desserts', description: 'Classic Italian coffee-flavored dessert' },
-  { id: '9', name: 'Chocolate Lava Cake', price: 8.99, category: 'Desserts', description: 'Warm chocolate cake with molten center' },
+  { id: '8', name: 'Tiramisu', price: 220, category: 'Desserts', description: 'Classic Italian coffee-flavored dessert' },
+  { id: '9', name: 'Chocolate Lava Cake', price: 250, category: 'Desserts', description: 'Warm chocolate cake with molten center' },
   
   // Beverages
-  { id: '10', name: 'House Wine', price: 6.99, category: 'Beverages', description: 'Red or white wine by the glass' },
-  { id: '11', name: 'Craft Beer', price: 5.99, category: 'Beverages', description: 'Local brewery selection' },
-  { id: '12', name: 'Fresh Juice', price: 3.99, category: 'Beverages', description: 'Orange, apple, or cranberry juice' },
+  { id: '10', name: 'House Wine', price: 180, category: 'Beverages', description: 'Red or white wine by the glass' },
+  { id: '11', name: 'Craft Beer', price: 150, category: 'Beverages', description: 'Local brewery selection' },
+  { id: '12', name: 'Fresh Juice', price: 120, category: 'Beverages', description: 'Orange, apple, or cranberry juice' },
 ];
+
+// Global state for invoices and menu items
+let globalInvoices: Invoice[] = [];
+let globalMenuItems: MenuItem[] = [...menuItems];
 
 const Index = () => {
   const [orderItems, setOrderItems] = useState<OrderItem[]>([]);
   const [activeCategory, setActiveCategory] = useState('All');
   const [showPayment, setShowPayment] = useState(false);
   const [tableNumber, setTableNumber] = useState('1');
-  const [invoices, setInvoices] = useState<Invoice[]>([]);
 
   const categories = ['All', 'Appetizers', 'Main Courses', 'Desserts', 'Beverages'];
   const tableNumbers = Array.from({ length: 20 }, (_, i) => (i + 1).toString());
 
   const filteredItems = activeCategory === 'All' 
-    ? menuItems 
-    : menuItems.filter(item => item.category === activeCategory);
+    ? globalMenuItems 
+    : globalMenuItems.filter(item => item.category === activeCategory);
 
   const addToOrder = (item: MenuItem) => {
     const existingItem = orderItems.find(orderItem => orderItem.id === item.id);
@@ -122,8 +125,8 @@ const Index = () => {
       timestamp: new Date()
     };
     
-    // Save to invoices
-    setInvoices([...invoices, newInvoice]);
+    // Save to global invoices
+    globalInvoices.push(newInvoice);
     
     // Clear current order
     setOrderItems([]);
@@ -138,45 +141,41 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
+      {/* Minimal Header */}
       <header className="bg-white shadow-sm border-b">
-        <div className="flex items-center justify-between px-6 py-4">
-          <div className="flex items-center space-x-3">
+        <div className="flex items-center justify-between px-4 py-3">
+          <div className="flex items-center space-x-2">
             <div className="bg-orange-500 text-white p-2 rounded-lg">
-              <Receipt className="h-6 w-6" />
+              <Receipt className="h-5 w-5" />
             </div>
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">Restaurant POS</h1>
-              <p className="text-sm text-gray-500">Point of Sale System</p>
-            </div>
+            <h1 className="text-xl font-bold text-gray-900">Restaurant POS</h1>
           </div>
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-3">
             <Link to="/dashboard">
               <Button variant="outline" size="sm">
-                <Settings className="h-4 w-4 mr-2" />
-                Dashboard
+                <Settings className="h-4 w-4 mr-1" />
+                Admin
               </Button>
             </Link>
-            <div className="text-right">
-              <p className="text-sm text-gray-500">Table #{tableNumber}</p>
-              <p className="text-lg font-semibold">{new Date().toLocaleDateString()}</p>
+            <div className="text-right text-sm">
+              <p className="text-gray-500">Table #{tableNumber}</p>
             </div>
           </div>
         </div>
       </header>
 
-      <div className="flex h-[calc(100vh-80px)]">
+      <div className="flex h-[calc(100vh-70px)]">
         {/* Menu Section */}
-        <div className="flex-1 p-6">
-          {/* Table Selection and Category Filter */}
-          <div className="mb-6 space-y-4">
-            <div className="flex items-center space-x-4">
+        <div className="flex-1 p-4">
+          {/* Compact Table Selection and Category Filter */}
+          <div className="mb-4 space-y-3">
+            <div className="flex items-center space-x-3">
               <div className="flex items-center space-x-2">
-                <Table className="h-5 w-5 text-gray-600" />
+                <Table className="h-4 w-4 text-gray-600" />
                 <span className="text-sm font-medium">Table:</span>
               </div>
               <Select value={tableNumber} onValueChange={setTableNumber}>
-                <SelectTrigger className="w-24">
+                <SelectTrigger className="w-20">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -189,11 +188,12 @@ const Index = () => {
               </Select>
             </div>
             
-            <div className="flex space-x-2 overflow-x-auto pb-2">
+            <div className="flex space-x-2 overflow-x-auto">
               {categories.map((category) => (
                 <Button
                   key={category}
                   variant={activeCategory === category ? "default" : "outline"}
+                  size="sm"
                   onClick={() => setActiveCategory(category)}
                   className={`whitespace-nowrap ${
                     activeCategory === category 
@@ -214,7 +214,7 @@ const Index = () => {
         </div>
 
         {/* Order Cart */}
-        <div className="w-96 bg-white border-l shadow-lg">
+        <div className="w-80 bg-white border-l shadow-lg">
           <OrderCart
             orderItems={orderItems}
             onUpdateQuantity={updateQuantity}
@@ -239,6 +239,13 @@ const Index = () => {
       )}
     </div>
   );
+};
+
+// Export functions to access global state
+export const getGlobalInvoices = () => globalInvoices;
+export const getGlobalMenuItems = () => globalMenuItems;
+export const updateGlobalMenuItems = (items: MenuItem[]) => {
+  globalMenuItems = items;
 };
 
 export default Index;

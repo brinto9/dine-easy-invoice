@@ -5,27 +5,65 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Eye, Calendar, CreditCard } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Eye, Calendar, CreditCard, Edit, Save, X } from 'lucide-react';
 import { Invoice } from '@/pages/Index';
+import { useToast } from '@/hooks/use-toast';
 
 interface InvoiceListProps {
   invoices: Invoice[];
+  onUpdateInvoice?: (invoice: Invoice) => void;
 }
 
-export const InvoiceList = ({ invoices }: InvoiceListProps) => {
+export const InvoiceList = ({ invoices, onUpdateInvoice }: InvoiceListProps) => {
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
+  const [editingInvoice, setEditingInvoice] = useState<Invoice | null>(null);
+  const [editForm, setEditForm] = useState({
+    tableNumber: '',
+    paymentMethod: ''
+  });
+  const { toast } = useToast();
 
   const getPaymentMethodColor = (method: string) => {
     switch (method) {
       case 'cash': return 'bg-green-100 text-green-800';
-      case 'card': return 'bg-blue-100 text-blue-800';
-      case 'mobile': return 'bg-purple-100 text-purple-800';
+      case 'bkash': return 'bg-pink-100 text-pink-800';
+      case 'nagad': return 'bg-red-100 text-red-800';
+      case 'visa': return 'bg-blue-100 text-blue-800';
+      case 'amex': return 'bg-purple-100 text-purple-800';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
 
   const totalRevenue = invoices.reduce((sum, invoice) => sum + invoice.total, 0);
   const totalVAT = invoices.reduce((sum, invoice) => sum + invoice.vat, 0);
+
+  const handleEditInvoice = (invoice: Invoice) => {
+    setEditingInvoice(invoice);
+    setEditForm({
+      tableNumber: invoice.tableNumber,
+      paymentMethod: invoice.paymentMethod
+    });
+  };
+
+  const handleSaveEdit = () => {
+    if (!editingInvoice || !onUpdateInvoice) return;
+
+    const updatedInvoice: Invoice = {
+      ...editingInvoice,
+      tableNumber: editForm.tableNumber,
+      paymentMethod: editForm.paymentMethod
+    };
+
+    onUpdateInvoice(updatedInvoice);
+    setEditingInvoice(null);
+  };
+
+  const handleCancelEdit = () => {
+    setEditingInvoice(null);
+    setEditForm({ tableNumber: '', paymentMethod: '' });
+  };
 
   return (
     <div className="space-y-6">
@@ -49,7 +87,7 @@ export const InvoiceList = ({ invoices }: InvoiceListProps) => {
               <CreditCard className="h-5 w-5 text-green-600" />
               <div>
                 <p className="text-sm text-gray-600">Total Revenue</p>
-                <p className="text-2xl font-bold text-green-600">${totalRevenue.toFixed(2)}</p>
+                <p className="text-2xl font-bold text-green-600">৳{totalRevenue.toFixed(2)}</p>
               </div>
             </div>
           </CardContent>
@@ -61,7 +99,7 @@ export const InvoiceList = ({ invoices }: InvoiceListProps) => {
               <CreditCard className="h-5 w-5 text-orange-600" />
               <div>
                 <p className="text-sm text-gray-600">Total VAT</p>
-                <p className="text-2xl font-bold text-orange-600">${totalVAT.toFixed(2)}</p>
+                <p className="text-2xl font-bold text-orange-600">৳{totalVAT.toFixed(2)}</p>
               </div>
             </div>
           </CardContent>
@@ -109,16 +147,27 @@ export const InvoiceList = ({ invoices }: InvoiceListProps) => {
                     </Badge>
                   </TableCell>
                   <TableCell className="font-semibold text-green-600">
-                    ${invoice.total.toFixed(2)}
+                    ৳{invoice.total.toFixed(2)}
                   </TableCell>
                   <TableCell>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setSelectedInvoice(invoice)}
-                    >
-                      <Eye className="h-4 w-4" />
-                    </Button>
+                    <div className="flex space-x-1">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setSelectedInvoice(invoice)}
+                      >
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                      {onUpdateInvoice && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleEditInvoice(invoice)}
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </div>
                   </TableCell>
                 </TableRow>
               ))}
@@ -161,7 +210,7 @@ export const InvoiceList = ({ invoices }: InvoiceListProps) => {
                   {selectedInvoice.items.map((item) => (
                     <div key={item.id} className="flex justify-between text-sm">
                       <span>{item.quantity}x {item.name}</span>
-                      <span>${(item.price * item.quantity).toFixed(2)}</span>
+                      <span>৳{(item.price * item.quantity).toFixed(2)}</span>
                     </div>
                   ))}
                 </div>
@@ -170,15 +219,15 @@ export const InvoiceList = ({ invoices }: InvoiceListProps) => {
               <div className="border-t pt-4 space-y-2">
                 <div className="flex justify-between text-sm">
                   <span>Subtotal:</span>
-                  <span>${selectedInvoice.subtotal.toFixed(2)}</span>
+                  <span>৳{selectedInvoice.subtotal.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span>VAT (5%):</span>
-                  <span>${selectedInvoice.vat.toFixed(2)}</span>
+                  <span>৳{selectedInvoice.vat.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between font-bold">
                   <span>Total:</span>
-                  <span className="text-green-600">${selectedInvoice.total.toFixed(2)}</span>
+                  <span className="text-green-600">৳{selectedInvoice.total.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span>Payment Method:</span>
@@ -186,6 +235,56 @@ export const InvoiceList = ({ invoices }: InvoiceListProps) => {
                     {selectedInvoice.paymentMethod}
                   </Badge>
                 </div>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Invoice Dialog */}
+      <Dialog open={editingInvoice !== null} onOpenChange={handleCancelEdit}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Edit Invoice</DialogTitle>
+          </DialogHeader>
+          
+          {editingInvoice && (
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="tableNumber">Table Number</Label>
+                <Input
+                  id="tableNumber"
+                  value={editForm.tableNumber}
+                  onChange={(e) => setEditForm(prev => ({ ...prev, tableNumber: e.target.value }))}
+                  placeholder="Enter table number"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="paymentMethod">Payment Method</Label>
+                <select
+                  id="paymentMethod"
+                  value={editForm.paymentMethod}
+                  onChange={(e) => setEditForm(prev => ({ ...prev, paymentMethod: e.target.value }))}
+                  className="w-full p-2 border border-gray-300 rounded-md"
+                >
+                  <option value="cash">Cash</option>
+                  <option value="bkash">Bkash</option>
+                  <option value="nagad">Nagad</option>
+                  <option value="visa">Visa Card</option>
+                  <option value="amex">Amex Card</option>
+                </select>
+              </div>
+
+              <div className="flex space-x-2 pt-4">
+                <Button onClick={handleSaveEdit} className="flex-1">
+                  <Save className="h-4 w-4 mr-2" />
+                  Save Changes
+                </Button>
+                <Button variant="outline" onClick={handleCancelEdit} className="flex-1">
+                  <X className="h-4 w-4 mr-2" />
+                  Cancel
+                </Button>
               </div>
             </div>
           )}

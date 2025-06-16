@@ -1,45 +1,71 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { MenuManager } from '@/components/MenuManager';
 import { InvoiceList } from '@/components/InvoiceList';
-import { ArrowLeft, Receipt, UtensilsCrossed, FileText } from 'lucide-react';
+import { DashboardAuth } from '@/components/DashboardAuth';
+import { ArrowLeft, Receipt, UtensilsCrossed, FileText, Save } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { MenuItem, Invoice } from '@/pages/Index';
+import { MenuItem, Invoice, getGlobalInvoices, getGlobalMenuItems, updateGlobalMenuItems } from '@/pages/Index';
+import { useToast } from '@/hooks/use-toast';
 
 const Dashboard = () => {
-  const [menuItems, setMenuItems] = useState<MenuItem[]>([
-    { id: '1', name: 'Bruschetta', price: 8.99, category: 'Appetizers', description: 'Fresh tomatoes, basil, and mozzarella on toasted bread' },
-    { id: '2', name: 'Calamari Rings', price: 12.99, category: 'Appetizers', description: 'Crispy fried squid rings with marinara sauce' },
-    { id: '3', name: 'Caesar Salad', price: 9.99, category: 'Appetizers', description: 'Romaine lettuce, parmesan, croutons, caesar dressing' },
-    { id: '4', name: 'Grilled Salmon', price: 24.99, category: 'Main Courses', description: 'Atlantic salmon with lemon herb butter' },
-    { id: '5', name: 'Ribeye Steak', price: 32.99, category: 'Main Courses', description: '12oz prime ribeye with garlic mashed potatoes' },
-    { id: '6', name: 'Chicken Parmesan', price: 19.99, category: 'Main Courses', description: 'Breaded chicken breast with marinara and mozzarella' },
-    { id: '7', name: 'Margherita Pizza', price: 16.99, category: 'Main Courses', description: 'Fresh mozzarella, tomatoes, and basil' },
-    { id: '8', name: 'Tiramisu', price: 7.99, category: 'Desserts', description: 'Classic Italian coffee-flavored dessert' },
-    { id: '9', name: 'Chocolate Lava Cake', price: 8.99, category: 'Desserts', description: 'Warm chocolate cake with molten center' },
-    { id: '10', name: 'House Wine', price: 6.99, category: 'Beverages', description: 'Red or white wine by the glass' },
-    { id: '11', name: 'Craft Beer', price: 5.99, category: 'Beverages', description: 'Local brewery selection' },
-    { id: '12', name: 'Fresh Juice', price: 3.99, category: 'Beverages', description: 'Orange, apple, or cranberry juice' },
-  ]);
-
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [invoices, setInvoices] = useState<Invoice[]>([]);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const { toast } = useToast();
+
+  useEffect(() => {
+    // Load data from global state
+    setMenuItems(getGlobalMenuItems());
+    setInvoices(getGlobalInvoices());
+  }, []);
 
   const handleUpdateMenuItem = (updatedItem: MenuItem) => {
     setMenuItems(prev => 
       prev.map(item => item.id === updatedItem.id ? updatedItem : item)
     );
+    setHasUnsavedChanges(true);
   };
 
   const handleAddMenuItem = (newItem: MenuItem) => {
     setMenuItems(prev => [...prev, newItem]);
+    setHasUnsavedChanges(true);
   };
 
   const handleDeleteMenuItem = (id: string) => {
     setMenuItems(prev => prev.filter(item => item.id !== id));
+    setHasUnsavedChanges(true);
   };
+
+  const handleSaveChanges = () => {
+    updateGlobalMenuItems(menuItems);
+    setHasUnsavedChanges(false);
+    toast({
+      title: "Changes Saved",
+      description: "Menu items have been updated successfully",
+    });
+  };
+
+  const handleUpdateInvoice = (updatedInvoice: Invoice) => {
+    setInvoices(prev => 
+      prev.map(invoice => invoice.id === updatedInvoice.id ? updatedInvoice : invoice)
+    );
+    toast({
+      title: "Invoice Updated",
+      description: `Invoice ${updatedInvoice.id} has been updated`,
+    });
+  };
+
+  if (!isAuthenticated) {
+    return <DashboardAuth onAuthenticated={() => setIsAuthenticated(true)} />;
+  }
+
+  const totalRevenue = invoices.reduce((sum, invoice) => sum + invoice.total, 0);
+  const totalOrders = invoices.length;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -61,14 +87,61 @@ const Dashboard = () => {
               <p className="text-sm text-gray-500">Manage Menu & View Reports</p>
             </div>
           </div>
-          <div className="text-right">
-            <p className="text-lg font-semibold">{new Date().toLocaleDateString()}</p>
-            <p className="text-sm text-gray-500">Admin Panel</p>
+          <div className="flex items-center space-x-3">
+            {hasUnsavedChanges && (
+              <Button onClick={handleSaveChanges} className="bg-green-600 hover:bg-green-700">
+                <Save className="h-4 w-4 mr-2" />
+                Save Changes
+              </Button>
+            )}
+            <div className="text-right">
+              <p className="text-lg font-semibold">{new Date().toLocaleDateString()}</p>
+              <p className="text-sm text-gray-500">Admin Panel</p>
+            </div>
           </div>
         </div>
       </header>
 
       <div className="p-6">
+        {/* Quick Stats */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center space-x-2">
+                <FileText className="h-5 w-5 text-blue-600" />
+                <div>
+                  <p className="text-sm text-gray-600">Total Orders</p>
+                  <p className="text-2xl font-bold">{totalOrders}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center space-x-2">
+                <Receipt className="h-5 w-5 text-green-600" />
+                <div>
+                  <p className="text-sm text-gray-600">Total Revenue</p>
+                  <p className="text-2xl font-bold text-green-600">৳{totalRevenue.toFixed(2)}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center space-x-2">
+                <UtensilsCrossed className="h-5 w-5 text-orange-600" />
+                <div>
+                  <p className="text-sm text-gray-600">Menu Items</p>
+                  <p className="text-2xl font-bold text-orange-600">{menuItems.length}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
         <Tabs defaultValue="menu" className="w-full">
           <TabsList className="grid w-full grid-cols-2 max-w-md">
             <TabsTrigger value="menu" className="flex items-center space-x-2">
@@ -84,9 +157,14 @@ const Dashboard = () => {
           <TabsContent value="menu" className="mt-6">
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <UtensilsCrossed className="h-5 w-5" />
-                  <span>Menu Items</span>
+                <CardTitle className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <UtensilsCrossed className="h-5 w-5" />
+                    <span>Menu Items</span>
+                  </div>
+                  {hasUnsavedChanges && (
+                    <span className="text-sm text-orange-600">● Unsaved changes</span>
+                  )}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -109,7 +187,7 @@ const Dashboard = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <InvoiceList invoices={invoices} />
+                <InvoiceList invoices={invoices} onUpdateInvoice={handleUpdateInvoice} />
               </CardContent>
             </Card>
           </TabsContent>

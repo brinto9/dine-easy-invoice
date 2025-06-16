@@ -111,7 +111,7 @@ export const MenuManager = ({ menuItems, onUpdateItem, onAddItem, onDeleteItem }
               <TableHead>Image</TableHead>
               <TableHead>Name</TableHead>
               <TableHead>Category</TableHead>
-              <TableHead>Price</TableHead>
+              <TableHead>Price (BDT)</TableHead>
               <TableHead>Description</TableHead>
               <TableHead>Actions</TableHead>
             </TableRow>
@@ -130,7 +130,7 @@ export const MenuManager = ({ menuItems, onUpdateItem, onAddItem, onDeleteItem }
                 </TableCell>
                 <TableCell className="font-medium">{item.name}</TableCell>
                 <TableCell>{item.category}</TableCell>
-                <TableCell>${item.price.toFixed(2)}</TableCell>
+                <TableCell>৳{item.price.toFixed(2)}</TableCell>
                 <TableCell className="max-w-xs truncate">{item.description}</TableCell>
                 <TableCell>
                   <div className="flex space-x-2">
@@ -179,7 +179,7 @@ export const MenuManager = ({ menuItems, onUpdateItem, onAddItem, onDeleteItem }
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="price">Price ($)</Label>
+                <Label htmlFor="price">Price (৳)</Label>
                 <Input
                   id="price"
                   type="number"

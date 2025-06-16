@@ -41,18 +41,18 @@ export const PaymentModal = ({ total, onPayment, onClose }: PaymentModalProps) =
       if (!cashValue || cashValue < total) {
         toast({
           title: "Insufficient cash amount",
-          description: `Amount must be at least $${total.toFixed(2)}`,
+          description: `Amount must be at least ৳${total.toFixed(2)}`,
           variant: "destructive",
         });
         return;
       }
     }
 
-    console.log(`Processing payment: ${selectedMethod} for amount: $${total.toFixed(2)}`);
+    console.log(`Processing payment: ${selectedMethod} for amount: ৳${total.toFixed(2)}`);
     onPayment(selectedMethod);
     toast({
       title: "Payment Successful!",
-      description: `Payment of $${total.toFixed(2)} processed via ${paymentMethods.find(m => m.id === selectedMethod)?.name}`,
+      description: `Payment of ৳${total.toFixed(2)} processed via ${paymentMethods.find(m => m.id === selectedMethod)?.name}`,
     });
   };
 
@@ -69,7 +69,7 @@ export const PaymentModal = ({ total, onPayment, onClose }: PaymentModalProps) =
             <span>Process Payment</span>
           </DialogTitle>
           <DialogDescription>
-            Select a payment method and complete the transaction for ${total.toFixed(2)}
+            Select a payment method and complete the transaction for ৳{total.toFixed(2)}
           </DialogDescription>
         </DialogHeader>
 
@@ -78,7 +78,7 @@ export const PaymentModal = ({ total, onPayment, onClose }: PaymentModalProps) =
           <Card className="bg-gradient-to-r from-green-50 to-green-100 border-green-200">
             <CardContent className="p-4 text-center">
               <p className="text-sm text-gray-600 mb-1">Total Amount</p>
-              <p className="text-3xl font-bold text-green-600">${total.toFixed(2)}</p>
+              <p className="text-3xl font-bold text-green-600">৳{total.toFixed(2)}</p>
             </CardContent>
           </Card>
 
@@ -129,13 +129,13 @@ export const PaymentModal = ({ total, onPayment, onClose }: PaymentModalProps) =
                 min={total}
                 value={cashAmount}
                 onChange={(e) => setCashAmount(e.target.value)}
-                placeholder={`Minimum: $${total.toFixed(2)}`}
+                placeholder={`Minimum: ৳${total.toFixed(2)}`}
                 className="text-lg"
               />
               {change > 0 && (
                 <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
                   <p className="text-sm text-yellow-800">
-                    <strong>Change to return: ${change.toFixed(2)}</strong>
+                    <strong>Change to return: ৳{change.toFixed(2)}</strong>
                   </p>
                 </div>
               )}
